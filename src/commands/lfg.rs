@@ -1,6 +1,6 @@
 use serenity::model::prelude::*;
 use serenity::http;
-use crate::{GUILD_ID, MM_BANNED_ROLE_ID};
+use crate::GUILD_ID;
 
 static LFG_ROLE: u64 = 549291995017904129;
 
@@ -22,9 +22,7 @@ pub(crate) fn update_lfg_status(update: PresenceUpdateEvent) {
 }
 
 command!(lfg(_ctx, msg) {
-    if !msg.author.has_role(GUILD_ID, MM_BANNED_ROLE_ID) {
-        http::raw::add_member_role(GUILD_ID, msg.author.id.into(), LFG_ROLE).expect("Unable to add LFG role");
-    }
+    http::raw::add_member_role(GUILD_ID, msg.author.id.into(), LFG_ROLE).expect("Unable to add LFG role");
 });
 
 command!(notlfg(_ctx, msg) {

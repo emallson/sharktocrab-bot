@@ -70,8 +70,10 @@ fn main() {
     client.with_framework(StandardFramework::new()
                           .configure(|c| c.owners(owners).prefix("!"))
                           .help(help_commands::with_embeds)
-                          .command("lfg", |c| c.cmd(commands::lfg::lfg))
-                          .command("notlfg", |c| c.cmd(commands::lfg::notlfg)));
+                          .command("lfg", |c| c.desc("Mark yourself as Looking for Game. This will persist until you go AFK or Offline.")
+                                   .allowed_roles(&["Prime Speaker", "Post in Matchmaking"])
+                                   .cmd(commands::lfg::lfg))
+                          .command("notlfg", |c| c.desc("Remove your LFG tag.").cmd(commands::lfg::notlfg)));
     if let Err(why) = client.start() {
         error!("Client error: {}", why);
     }
