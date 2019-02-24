@@ -3,6 +3,7 @@
 extern crate env_logger;
 
 use std::{collections::HashSet, env};
+use rand::seq::SliceRandom;
 
 use serenity::{
     framework::{StandardFramework, standard::help_commands},
@@ -49,6 +50,12 @@ impl EventHandler for Handler {
     }
 }
 
+static POKES: [&str; 3] = [
+    "*glowers*",
+    "*glares*",
+    "*scowls*",
+];
+
 fn main() {
     env_logger::init();
 
@@ -69,11 +76,16 @@ fn main() {
 
     client.with_framework(StandardFramework::new()
                           .configure(|c| c.owners(owners).prefix("!"))
-                          .help(help_commands::with_embeds)
-                          .group("Looking for Games", |g| g.prefix("lfg")
-                                 .allowed_roles(&["Post in Matchmaking"])
+                          .help(help_commands::plain)
+                          .command("poke", |c| c.desc("Test the Sharktocrab").exec(|_, msg, _| {
+                              msg.channel_id.say(POKES.choose(&mut rand::thread_rng()).unwrap())?;
+                              Ok(())
+                          }))
+                          .group("Looking for Game", |g| g.prefix("lfg")
                                  .default_cmd(commands::lfg::lfg)
-                                 .cmd("off", commands::lfg::notlfg)));
+                                 .help_available(true)
+                                 .command("on", |c| c.desc("Add the LFG tag. Optional.").cmd(commands::lfg::lfg))
+                                 .command("off", |c| c.desc("Remove your LFG tag.").cmd(commands::lfg::notlfg))));
     if let Err(why) = client.start() {
         error!("Client error: {}", why);
     }
