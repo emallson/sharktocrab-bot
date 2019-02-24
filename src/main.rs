@@ -1,14 +1,17 @@
 #[macro_use] extern crate log;
+#[macro_use] extern crate serenity;
 extern crate env_logger;
 
 use std::{collections::HashSet, env};
 
 use serenity::{
-    framework::StandardFramework,
+    framework::{StandardFramework, standard::help_commands},
     prelude::*,
     model::prelude::*,
     http,
 };
+
+mod commands;
 
 struct Handler;
 
@@ -40,6 +43,10 @@ impl EventHandler for Handler {
             http::raw::add_member_role(GUILD_ID, reaction.user_id.into(), MM_ROLE_ID).expect("Unable to add matchmaking role");
         }
     }
+
+    fn presence_update(&self, _ctx: Context, update: PresenceUpdateEvent) {
+        commands::lfg::update_lfg_status(update);
+    }
 }
 
 fn main() {
@@ -60,7 +67,11 @@ fn main() {
         Err(why) => panic!("Couldn't get application info: {:?}", why),
     };
 
-    client.with_framework(StandardFramework::new().configure(|c| c.owners(owners).prefix("!")));
+    client.with_framework(StandardFramework::new()
+                          .configure(|c| c.owners(owners).prefix("!"))
+                          .help(help_commands::with_embeds)
+                          .command("lfg", |c| c.cmd(commands::lfg::lfg))
+                          .command("notlfg", |c| c.cmd(commands::lfg::notlfg)));
     if let Err(why) = client.start() {
         error!("Client error: {}", why);
     }
